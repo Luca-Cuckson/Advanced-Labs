@@ -144,23 +144,26 @@ plt.savefig('PeakGraphs/K40__background.svg', bbox_inches = 'tight')
 
 
 
-labels = ['Pb 1.44 mm', 'Ag 0.64 mm', 'Al 0.59 mm', 'Pb 0.64 mm', 'Background']
+#labels = ['Pb 1.44 mm', 'Ag 0.64 mm', 'Al 0.59 mm', 'Pb 0.64 mm', 'Background']
 
 plt.figure(100).add_axes((0.05,0.05,1.2,0.68))
 plt.bar(x[low:high], y[low:high] - no_peak, width=5, alpha=0.3)
-plt.bar(x[low:high], y2[low:high] - no_peak2, width=5, alpha=0.3)
-plt.bar(x[low:high], y3[low:high] - no_peak3, width=5, alpha=0.3)
-plt.bar(x[low4:high4], y4[low4:high4] - no_peak4, width=5, alpha=0.3)
+#plt.bar(x[low:high], y2[low:high] - no_peak2, width=5, alpha=0.3)
+#plt.bar(x[low:high], y3[low:high] - no_peak3, width=5, alpha=0.3)
+#plt.bar(x[low4:high4], y4[low4:high4] - no_peak4, width=5, alpha=0.3)
 plt.bar(x[low:high], y5[low:high] - no_peak5, width=5, alpha=0.3)
-plt.legend(labels)
+plt.axvline(1398, lw=1)
+plt.axvline(1402, lw=1)
+#plt.legend(labels)
 plt.savefig('PeakGraphs/K40__peaks.svg', bbox_inches = 'tight')
 
 
 
 a = func.binsum(Pbcounts144, binwidth)
 b = func.binsum(func.atten(background, mu_vals, 0.144), binwidth)
+x2 = x * (1402/1398)
 
 plt.figure(99).add_axes((0.05,0.05,1.2,0.68))
-plt.bar(x, np.log10(a+1), width=5, alpha=0.4)
+plt.bar(x2, np.log10(a+1), width=5, alpha=0.4)
 plt.bar(x, np.log10(b+1), width=5, alpha=0.4)
 plt.savefig('PeakGraphs/overlapped.svg', bbox_inches = 'tight')
