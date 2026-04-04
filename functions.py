@@ -27,7 +27,7 @@ def atten(counts, mu, x): # thickness x in cm
     return counts * np.exp(-mu * x)
 
 
-def logging(counts):  # VERY IMPORTANT: FOR VISUALISING PLOTS ONLY, NOT SOUNDS FOR DATA ANALYSIS
+def logging(counts):  # VERY IMPORTANT: FOR VISUALISING PLOTS ONLY, NOT SOUND FOR DATA ANALYSIS
     logged = np.empty(len(counts))
     for i in range(len(counts)):
         if -1 <= counts[i] <= 1:
@@ -65,3 +65,7 @@ def no_peaking(x, y, minE, low, high, maxE):
     coeffs = np.polyfit(shwoopx, np.log10(shwoopy), deg=1)
     no_peak = 10 ** np.polyval(coeffs, x[low:high])
     return no_peak
+
+
+def decay(A0, halflife, t):
+    return A0 * np.exp(-0.693 * t / halflife)

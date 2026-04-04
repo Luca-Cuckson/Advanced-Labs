@@ -147,6 +147,13 @@ aligned_Pb = Pbinterp(channels)
 
 
 Pb144Brem = aligned_Pb - aligned_Bareback - func.atten(background - aligned_Bareback, mu_vals, 0.144)
+Pb144Brem_err = np.sqrt(abs(Pb144Brem))
+
+Pb144Activity = np.sum(Pb144Brem) / 244860
+Pb144Activity_err = np.sqrt(np.sum(Pb144Brem_err ** 2)) / 244860
+
+print('Pb144 total counts =', np.sum(Pb144Brem))
+print('Pb144 Activity = ', Pb144Activity, '+/-', Pb144Activity_err)
 
 e = func.binsum(Pb144Brem, binwidth)
 
@@ -155,6 +162,7 @@ plt.bar(x, func.logging(e), width=5)
 plt.axhline(0, color='k', lw=0.6)
 plt.axhline(np.log10(25), color='r', lw=0.6)
 plt.axhline(-np.log10(25), color='r', lw=0.6)
+plt.axvline(channelE * 2200, lw=0.2, color='r')
 plt.axvline(1402, lw=0.2)
 plt.axvline(1802, lw=0.2)
 plt.savefig('BackgroundStuff/Pb144_Brem.svg', bbox_inches = 'tight')
@@ -167,3 +175,23 @@ plt.axhline(0, color='k', lw=0.6)
 plt.axvline(1402, lw=0.2, color='r')
 plt.axvline(75 * (1402/1461), lw=0.2, color='r')
 plt.savefig('BackgroundStuff/Pb144_Brem_Check.svg', bbox_inches = 'tight')
+
+######################################################################################################################################################
+# Pb144 Corrected activity
+
+#stop = 4245
+stop = 2200
+
+def quadratic(x, a, b, c):
+    return a * x**2 + b * x + c
+
+a, b, c = 2.41629589e-06, -1.69925760e-02, 2.31120387e+01
+
+Efficiencies = quadratic(channels[:stop], a, b, c)
+Efficiencies = Efficiencies
+
+
+plt.figure(300).add_axes((0,0,1.2,0.68))
+plt.plot(channels[:stop], Efficiencies)
+plt.axhline(0, color='k', lw=0.3)
+plt.savefig('BackgroundStuff/Efficiencies_Check.svg', bbox_inches = 'tight')

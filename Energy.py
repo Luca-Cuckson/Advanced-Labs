@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.optimize
-import scipy.stats
+#import scipy.optimize
+#import scipy.stats
+import scipy
 import functions as func
 
 
@@ -11,6 +12,9 @@ rho = 11.34 # g / cm^3
 LLD = 30
 cutoff = 8192
 binwidth = 10
+
+r = 29.6
+d = 68.564
 
 channels = np.linspace(0, nchannels*channelE, 16384)
 channels = channels[LLD:]
@@ -30,7 +34,7 @@ Cs137Counts = Cs137Counts[LLD:]
 ######################################################################################################################################################
 # Trying scipy's peak search
 
-print(scipy.signal.find_peaks(Na22Counts, width=(100,600)))
+#print(scipy.signal.find_peaks(Na22Counts, width=(100,600)))
 
 plt.figure(1).add_axes((0, 0, 1.2, 0.68))
 plt.step(channels_raw, np.log10(Na22Counts + 1), linewidth=0.2)
@@ -91,6 +95,34 @@ def Gaussing(fitfunc, x, y, nopeak, low, high, n):
     plt.plot(xdata, fit)
     return A, mu, sigma, c
 
+def efficienting(A0, halflife, T, Y, r, d, Ncounts, t): # Need A0 in Bq (counts / second), halflife and T (age of source) can just be same unit, time of reading t in seconds
+    r_err = 0.05
+    d_err = 0.224
+    
+    N_emit = func.decay(A0, halflife, T) * Y * t
+
+    G = (r ** 2) / (4 * d ** 2) # factors of pi cancel
+
+    N_on = G * N_emit
+    N_on_rerr = abs(((r + r_err) ** 2) / (4 * d ** 2) * N_emit - N_on)
+    N_on_derr = abs(((r) ** 2) / (4 * (d + d_err) ** 2) * N_emit - N_on)
+    N_on_err = np.sqrt(N_on_rerr**2 + N_on_derr**2)
+
+    Efficiency = (Ncounts[0] / N_on) * 100
+
+    N_err = ((Ncounts[0] + np.sqrt(Ncounts[0])) / N_on) * 100 - ((Ncounts[0] / N_on) * 100)
+    G_err = ((Ncounts[0] / N_on) * 100) - ((Ncounts[0] / (N_on + N_on_err)) * 100)
+    Error = np.sqrt(N_err**2 + G_err**2)
+    return Efficiency, Error
+
+def gauss_area(func, A, mu, sigma, C, botlim, uplim):
+    area = scipy.integrate.quad(func, botlim, uplim, args=(A, mu, sigma, C))
+    return area
+
+# chi-squared time!!!!!
+def chi_squared(model_params, model, x_data, y_data, y_err):
+    return np.sum(((y_data - model(x_data, *model_params))/y_err)**2) # Note the `*model_params' here!
+
 ######################################################################################################################################################
 # Chop of some peaks!
 # Gonna do this in raw channels so then can also get a look at linearity of energy stuff
@@ -108,9 +140,15 @@ plt.savefig('Res&Eff/Na22_Peak.svg', bbox_inches = 'tight')
 
 Na511Ech = 511 / mu
 Na511FWHM = 2.355 * sigma
-Na511E_FWHM = Na511Ech * 0.530# * Na511FWHM
+Na511E_FWHM = Na511FWHM * Na511Ech
 
-print([Na511Ech, Na511FWHM])
+print('Na511:', [mu, Na511Ech, Na511FWHM])
+
+#############################################################
+
+area = gauss_area(gauss, A, mu, sigma, c, low, high)
+
+Na511_Efficiency = efficienting(420000, 2.6, 9.6, 1.807, r, d, area, 5589)
 
 ######################################################################################################################################################
 # Na22 Second peak - 1275 keV
@@ -127,15 +165,20 @@ plt.savefig('Res&Eff/Na22_Peak2.svg', bbox_inches = 'tight')
 
 Na1275Ech = 1275 / mu
 Na1275FWHM = 2.355 * sigma
-Na1275E_FWHM = Na1275Ech * 0.530# * Na1275FWHM
+Na1275E_FWHM = Na1275FWHM * Na1275Ech
 
-print([Na1275Ech, Na1275FWHM])
+print('Na1275:', [Na1275Ech, Na1275FWHM])
+
+#############################################################
+
+area = gauss_area(gauss, A, mu, sigma, c, low, high)
+
+Na1275_Efficiency = efficienting(420000, 2.6, 9.6, 0.9994, r, d, area, 5589)
 
 ######################################################################################################################################################
 # Co60 First peak - 1173 keV
 
-minE, low, high, maxE = 1904, 1905, 2750, 2751
-
+minE, low, high, maxE = 1914, 1915, 2740, 2741
 no_peak = no_peaking(channels_raw, Co60Counts, minE, low, high, maxE)
 
 check_plot(Co60Counts, channels_raw, no_peak, minE, low, high, maxE, 4)
@@ -161,24 +204,114 @@ plt.savefig('Res&Eff/Co60_Peak.svg', bbox_inches = 'tight')
 
 Co1173Ech = 1173 / mu1
 Co1173FWHM = 2.355 * sigma1
-Co1173E_FWHM = Co1173Ech * 0.530# * Co1173FWHM
+Co1173E_FWHM = Co1173FWHM * Co1173Ech
 
 Co1332Ech = 1332 / mu2
 Co1332FWHM = 2.355 * sigma2
-Co1332E_FWHM = Co1332Ech * 0.530# * Co1332FWHM
+Co1332E_FWHM = Co1332FWHM * Co1332Ech
 
-print([Co1173Ech, Co1173FWHM])
-print([Co1332Ech, Co1332FWHM])
+print('Co1173:', [Co1173Ech, Co1173FWHM])
+print('Co1332:', [Co1332Ech, Co1332FWHM])
+
+#############################################################
+
+area1 = gauss_area(gauss, A1, mu1, sigma1, C, low, high)
+area2 = gauss_area(gauss, A2, mu2, sigma2, C, low, high)
+
+d2 = d + 27.93
+
+Co1173_Efficiency = efficienting(3600000, 5.27, 9.64, 0.9985, r, d2, area1, 1446)
+Co1332_Efficiency = efficienting(3600000, 5.27, 9.64, 0.999826, r, d2, area2, 1446)
+
+######################################################################################################################################################
+# Cs137 Peak - 661.7 keV
+
+minE, low, high, maxE = 1065, 1070, 1540, 1545
+
+no_peak = no_peaking(channels_raw, Cs137Counts, minE, low, high, maxE)
+
+check_plot(Cs137Counts, channels_raw, no_peak, minE, low, high, maxE, 5)
+plt.savefig('Res&Eff/Cs137_OnlyPeak.svg', bbox_inches = 'tight')
+
+A, mu, sigma, c = Gaussing(gauss, channels_raw, Cs137Counts, no_peak, low, high, 105)
+plt.savefig('Res&Eff/Cs137_Peak.svg', bbox_inches = 'tight')
+
+CsEch = 661.7 / mu
+CsFWHM = 2.355 * sigma
+CsE_FWHM = CsFWHM * CsEch
+
+print('Cs661.7:', [CsEch, CsFWHM, CsE_FWHM])
+
+#############################################################
+
+area = gauss_area(gauss, A, mu, sigma, c, low, high)
+
+print(area)
+
+Cs_Efficiency = efficienting(370000, 30, 47.4, 0.8499, r, d, area, 4651)
 
 ######################################################################################################################################################
 # Resolutions
 
-Energies = np.array([511, 1173, 1275, 1332])
-E_FWHMs = np.array([Na511E_FWHM, Co1173E_FWHM, Na1275E_FWHM, Co1332E_FWHM])
+Energies = np.array([511, 661.7, 1173, 1275, 1332])
+E_FWHMs = np.array([Na511E_FWHM, CsE_FWHM, Co1173E_FWHM, Na1275E_FWHM, Co1332E_FWHM])
 
 Resolutions = E_FWHMs / Energies * 100
+
+print('Resolutions:', Resolutions)
 
 plt.figure(200)
 plt.plot(Energies, Resolutions)
 plt.plot((Energies[0], Energies[-1]), (Resolutions[0], Resolutions[-1]), linestyle='dashed')
 plt.savefig('Res&Eff/Resolution', bbox_inches='tight')
+
+######################################################################################################################################################
+# Efficiencies
+
+Efficiencies = [Na511_Efficiency[0], Cs_Efficiency[0], Co1173_Efficiency[0], Na1275_Efficiency[0], Co1332_Efficiency[0]]
+Eff_err = np.array([Na511_Efficiency[1], Cs_Efficiency[1], Co1173_Efficiency[1], Na1275_Efficiency[1], Co1332_Efficiency[1]])
+
+def line(x, m, c):
+    return m*x + c
+
+def quadratic(x, a, b, c):
+    return a * x**2 + b * x + c
+
+def power_law(x, coeff, power, c):
+    return coeff * x ** (power) + c
+
+p0_1 = [-0.01, 20]
+params, cov = scipy.optimize.curve_fit(line, Energies, Efficiencies, p0_1)
+m, c1 = params
+print(params)
+
+p0_2 = [0.01, -0.01, 0]
+params, cov = scipy.optimize.curve_fit(quadratic, Energies, Efficiencies, p0_2)
+a, b, c2 = params
+print(params)
+
+#p0_3 = [8000, -1.12, 0]
+#params, cov = scipy.optimize.curve_fit(power_law, Energies, Efficiencies, p0_3)
+#coeff, power, c3 = params
+
+x_grid = np.linspace(500, 1350, 1000)
+y_line = line(x_grid, m, c1)
+y_quad = quadratic(x_grid, a, b, c2)
+#y_power = power_law(x_grid, coeff, power, c3)
+
+line_chi = chi_squared((m, c1), line, Energies, Efficiencies, Eff_err) / 3
+quad_chi = chi_squared((a, b, c2), quadratic, Energies, Efficiencies, Eff_err) / 2
+
+print('line chi ssquared =', line_chi)
+print('quadratic chi ssquared =', quad_chi)
+
+print('Efficiencies:', Efficiencies)
+print('Efficiencies error:', Eff_err)
+
+
+plt.figure(300)
+plt.errorbar(Energies, Efficiencies, yerr=(Eff_err), linestyle='none', fmt='x')
+plt.plot(x_grid, y_line, linestyle='dashed')
+plt.plot(x_grid, y_quad, linestyle='dashed')
+#plt.plot(x_grid, y_power, linestyle='dashed')
+plt.savefig('Res&Eff/Efficiency', bbox_inches='tight', dpi=300)
