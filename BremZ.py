@@ -20,18 +20,17 @@ BothBackground = func.load_maestro_spe(r"DataFiles\Backgrounds\Sr90 Gamma Raised
 BareBackground = func.load_maestro_spe(r"DataFiles\Backgrounds\Gamma Background 21 hours x100 13th March.Spe")
 BareBackground = BareBackground * (84745 / 76344)
 
-Pbcounts40 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.4mm Pb 21 hours x100 27th Feb.Spe")
-Pbcounts40 = Pbcounts40 * (84745 / 75043)
 Pbcounts64 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.64mm Pb 44 hours x100 12th March.Spe")
 Pbcounts64 = Pbcounts64 * (84745 / 159519)
-Pbcounts74 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.7mm Pb 25 hours x100 6th March.Spe")
-Pbcounts74 = Pbcounts74 * (84745 / 88875)
-Pbcounts100 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 1.00mm Pb 64 hours x100 16th March.Spe")
-Pbcounts100 = Pbcounts100 * (84745 / 231052)
-PbCounts141 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 1.2mm Pb 69 hours x100 2nd March.Spe")
-PbCounts141 = PbCounts141 * (84745 / 244860)
-Pbcounts282 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 2.82mm Pb 92 hours x100 10th March.Spe")
-Pbcounts282 = Pbcounts282 * (84745 / 332296)
+
+Cucounts64 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.6mm Cu 25 hours x100 3rd March.Spe")
+Cucounts64 = Cucounts64 * (84745 / 89451)
+
+Alcounts64 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.64mm Al 18 hours x100 4th March.Spe")
+Alcounts64 = Alcounts64 * (84745 / 64248)
+
+Agcounts64 = func.load_maestro_spe(r"DataFiles\Readings\Sr90 Brem 0.6mm Ag 27 hours x100 5th March.Spe")
+Agcounts64 = Agcounts64 * (84745 / 94912)
 
 ######################################################################################################################################################
 # Functions
@@ -139,10 +138,10 @@ minE, maxE = (low - 1), (high + 1)
 no_peak = no_peaking(x, data, minE, low, high, maxE)
 
 check_plot(data, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Combined_background_check1.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Combined_background_check1.png', bbox_inches = 'tight', dpi=dpi)
 
 A, mu, sigma, c = Gaussing(gauss, x, data, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Combined_background_peak1.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Combined_background_peak1.png', bbox_inches = 'tight', dpi=dpi)
 
 Both_mu = mu
 
@@ -166,10 +165,10 @@ minE, maxE = (low - 1), (high + 1)
 no_peak = no_peaking(x, y, minE, low, high, maxE)
 
 check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Plain_background_check.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Plain_background_check.png', bbox_inches = 'tight', dpi=dpi)
 
 A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Plain_background_peak.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Plain_background_peak.png', bbox_inches = 'tight', dpi=dpi)
 
 interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
 
@@ -188,11 +187,11 @@ SourceBackBin = func.binsum(SourceBackground, binwidth)
 
 plt.figure(2000)
 plt.bar(channels_binned, func.logging(SourceBackBin+1), width=5)
-plt.savefig('Thicknesses/Source_Background', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Source_Background', bbox_inches = 'tight', dpi=dpi)
 
 ######################################################################################################################################################
 # Calculating attenuation coefficients
-
+# Pb
 file = r"DataFiles\AttenCoeffs\Pbattenuation_coeff.txt"
 E, mu_rho = np.loadtxt(file, usecols=(0,1), unpack=True)
 E = E*1e3
@@ -203,58 +202,70 @@ logE = np.log(E)
 logmu = np.log(mu)
 
 log_interp = scipy.interpolate.interp1d(logE, logmu, kind='linear', fill_value='extrapolate')
-mu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
+Pbmu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
+
+plt.figure(3001).add_axes((0.05,0.05,1.2,0.68))
+plt.plot(np.log10(channels), np.log10(Pbmu_vals), alpha=0.6, linewidth=0.8)
+plt.plot(np.log10(E), np.log10(mu), alpha=0.6, linewidth=0.8)
+plt.savefig('Z_Time!/Pb_mus.svg', bbox_inches = 'tight')
+
+###### Al
+rho = 2.7
+
+file = r"DataFiles\AttenCoeffs\Alattenuation_coeff.txt"
+E, mu_rho = np.loadtxt(file, usecols=(0,1), unpack=True)
+E = E*1e3
+
+mu = mu_rho * rho
+
+logE = np.log(E)
+logmu = np.log(mu)
+
+log_interp = scipy.interpolate.interp1d(logE, logmu, kind='linear', fill_value='extrapolate')
+Almu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
+
+###### Ag
+rho = 10.49
+
+file = r"DataFiles\AttenCoeffs\Agattenuation_coeff.txt"
+E, mu_rho = np.loadtxt(file, usecols=(0,1), unpack=True)
+E = E*1e3
+
+mu = mu_rho * rho
+
+logE = np.log(E)
+logmu = np.log(mu)
+
+log_interp = scipy.interpolate.interp1d(logE, logmu, kind='linear', fill_value='extrapolate')
+Agmu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
+
+##### Cu
+rho = 8.96
+
+file = r"DataFiles\AttenCoeffs\Cuattenuation_coeff.txt"
+E, mu_rho = np.loadtxt(file, usecols=(0,1), unpack=True)
+E = E*1e3
+
+mu = mu_rho * rho
+
+logE = np.log(E)
+logmu = np.log(mu)
+
+log_interp = scipy.interpolate.interp1d(logE, logmu, kind='linear', fill_value='extrapolate')
+Cumu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
+
+plt.figure(3004).add_axes((0.05,0.05,1.2,0.68))
+plt.plot(np.log10(channels), np.log10(Cumu_vals), alpha=0.6, linewidth=0.8)
+plt.plot(np.log10(E), np.log10(mu), alpha=0.6, linewidth=0.8)
+plt.savefig('Z_Time!/Cu_mus.svg', bbox_inches = 'tight')
 
 ######################################################################################################################################################
 # Lead Time!!
 ######################################################################################################################################################
-# Pb 0.40 mm
+# Al 0.64 mm
 #####
-low, high = int(2435 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = Pbcounts40, 1, 0.04
-#####
-x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
-minE, maxE = (low - 1), (high + 1)
-
-no_peak = no_peaking(x, y, minE, low, high, maxE)
-
-check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb40_check.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb40_peak.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
-aligned = interp(channels) * (mu / Both_mu)
-aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
-aligned_binned = func.binsum(aligned, binwidth)
-
-Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
-Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
-binned_Brem = func.binsum(Bremsstrahlung, binwidth)
-spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
-plt.savefig('Thicknesses/Pb40_spectrum.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-SNR = Bremsstrahlung / Brem_err
-SNR_binned = func.binsum(SNR, binwidth)
-i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb40_SNR.png', bbox_inches='tight', dpi=dpi)
-plt.close()
-
-print(channels_binned[i])
-
-NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net40 = NetCounts
-print('Pb 0.40 mm counts:', NetCounts)
-
-######################################################################################################################################################
-# Pb 0.64 mm
-#####
-low, high = int(2540 / binwidth), int(2960 / binwidth)
-data, assigned_no, target_thick = Pbcounts64, 2, 0.064
+low, high = int(2435 / binwidth), int(2820 / binwidth)
+data, assigned_no, target_thick, mu_vals = Alcounts64, 1, 0.064, Almu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
@@ -262,140 +273,11 @@ minE, maxE = (low - 1), (high + 1)
 no_peak = no_peaking(x, y, minE, low, high, maxE)
 
 check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb64_check.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Al64_check.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb64_peak.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
-aligned = interp(channels) * (mu / Both_mu)
-aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
-aligned_binned = func.binsum(aligned, binwidth)
-
-Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
-Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
-binned_Brem = func.binsum(Bremsstrahlung, binwidth)
-spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
-plt.savefig('Thicknesses/Pb64_spectrum.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-SNR = Bremsstrahlung / Brem_err
-SNR_binned = func.binsum(SNR, binwidth)
-i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb64_SNR.png', bbox_inches='tight', dpi=dpi)
-plt.close()
-
-print(channels_binned[i])
-
-NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net64 = NetCounts
-print('Pb 0.64 mm counts:', NetCounts)
-
-######################################################################################################################################################
-# Pb 0.74 mm
-#####
-low, high = int(2430 / binwidth), int(2820 / binwidth)
-data, assigned_no, target_thick = Pbcounts74, 3, 0.074
-#####
-x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
-minE, maxE = (low - 1), (high + 1)
-
-no_peak = no_peaking(x, y, minE, low, high, maxE)
-
-check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb74_check.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb74_peak.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
-aligned = interp(channels) * (mu / Both_mu)
-aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
-aligned_binned = func.binsum(aligned, binwidth)
-
-Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
-Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
-binned_Brem = func.binsum(Bremsstrahlung, binwidth)
-spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
-plt.savefig('Thicknesses/Pb74_spectrum.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-SNR = Bremsstrahlung / Brem_err
-SNR_binned = func.binsum(SNR, binwidth)
-i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb74_SNR.png', bbox_inches='tight', dpi=dpi)
-plt.close()
-
-print(channels_binned[i])
-
-NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net74 = NetCounts
-print('Pb 0.74 mm counts:', NetCounts)
-
-######################################################################################################################################################
-# Pb 1.00 mm
-#####
-low, high = int(2580 / binwidth), int(3010 / binwidth)
-data, assigned_no, target_thick = Pbcounts100, 4, 0.1
-#####
-x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
-minE, maxE = (low - 1), (high + 1)
-
-no_peak = no_peaking(x, y, minE, low, high, maxE)
-
-check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb100_check.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb100_peak.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
-aligned = interp(channels) * (mu / Both_mu)
-aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
-aligned_binned = func.binsum(aligned, binwidth)
-
-Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
-Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
-binned_Brem = func.binsum(Bremsstrahlung, binwidth)
-spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
-plt.savefig('Thicknesses/Pb100_spectrum.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-SNR = Bremsstrahlung / Brem_err
-SNR_binned = func.binsum(SNR, binwidth)
-i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb100_SNR.png', bbox_inches='tight', dpi=dpi)
-plt.close()
-
-print(channels_binned[i])
-
-NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net100 = NetCounts
-print('Pb 1.00 mm counts:', NetCounts)
-
-######################################################################################################################################################
-# Pb 1.41 mm
-#####
-low, high = int(2430 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = PbCounts141, 5, 0.141
-#####
-x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
-minE, maxE = (low - 1), (high + 1)
-
-no_peak = no_peaking(x, y, minE, low, high, maxE)
-
-check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb141_check.png', bbox_inches = 'tight', dpi=dpi)
-plt.close()
-
-A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb141_peak.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Al64_peak.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
@@ -408,26 +290,26 @@ Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
 binned_Brem = func.binsum(Bremsstrahlung, binwidth)
 spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
 plt.axvline(75, color='g', lw = 0.3)
-plt.savefig('Thicknesses/Pb141_spectrum.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Al64_spectrum.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 SNR = Bremsstrahlung / Brem_err
 SNR_binned = func.binsum(SNR, binwidth)
 i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb141_SNR.png', bbox_inches='tight', dpi=dpi)
+plt.savefig('Z_Time!/Al64_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net141 = NetCounts
-print('Pb 1.41 mm counts:', NetCounts)
+NetAl = NetCounts
+print('Al 0.64 mm counts:', NetCounts)
 
 ######################################################################################################################################################
-# Pb 2.82 mm
+# Cu 0.61 mm
 #####
-low, high = int(2430 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = Pbcounts282, 6, 0.282
+low, high = int(2440 / binwidth), int(2840 / binwidth)
+data, assigned_no, target_thick, mu_vals = Cucounts64, 2, 0.061, Cumu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
@@ -435,11 +317,69 @@ minE, maxE = (low - 1), (high + 1)
 no_peak = no_peaking(x, y, minE, low, high, maxE)
 
 check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
-plt.savefig('Thicknesses/Pb282_check.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Cu61_check.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
-plt.savefig('Thicknesses/Pb282_peak.png', bbox_inches = 'tight', dpi=dpi)
+plt.savefig('Z_Time!/Cu61_peak.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
+aligned = interp(channels) * (mu / Both_mu)
+aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
+aligned_binned = func.binsum(aligned, binwidth)
+
+print(np.sum(data))
+print(np.sum(aligned))
+
+Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
+Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
+binned_Brem = func.binsum(Bremsstrahlung, binwidth)
+spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
+plt.axvline(75, color='g', lw = 0.3)
+plt.savefig('Z_Time!/Cu61_spectrum.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+SNR = Bremsstrahlung / Brem_err
+SNR_binned = func.binsum(SNR, binwidth)
+i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
+plt.savefig('Z_Time!/Cu61_SNR.png', bbox_inches='tight', dpi=dpi)
+plt.close()
+
+print(channels_binned[i])
+
+NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
+NetCu = NetCounts
+print('Cu 0.61 mm counts:', NetCounts)
+
+thing = func.binsum(func.atten(SourceBackground, mu_vals, target_thick) + bare_aligned, binwidth)
+
+plt.figure(5000).add_axes((0,0,1.2,0.68))
+plt.bar(channels_binned, func.logging(aligned_binned), width=5, alpha=0.6)
+plt.bar(channels_binned, func.logging(thing), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(bare_aligned_binned), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(func.binsum(func.atten(SourceBackground, mu_vals, target_thick), binwidth)), width=5, alpha=0.6)
+plt.axvline(1461, lw=0.2, color='g')
+plt.axhline(0, color='k', lw=0.6)
+plt.savefig('Z_Time!/Cu_Check_Alignment.png', bbox_inches = 'tight', dpi=dpi)
+
+######################################################################################################################################################
+# Ag 0.64 mm
+#####
+low, high = int(2460 / binwidth), int(2840 / binwidth)
+data, assigned_no, target_thick, mu_vals = Agcounts64, 3, 0.064, Agmu_vals
+#####
+x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
+minE, maxE = (low - 1), (high + 1)
+
+no_peak = no_peaking(x, y, minE, low, high, maxE)
+
+check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
+plt.savefig('Z_Time!/Ag64_check.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
+plt.savefig('Z_Time!/Ag64_peak.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
@@ -451,34 +391,74 @@ Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) -
 Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
 binned_Brem = func.binsum(Bremsstrahlung, binwidth)
 spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
-plt.savefig('Thicknesses/Pb282_spectrum.png', bbox_inches = 'tight', dpi=dpi)
+plt.axvline(75, color='g', lw = 0.3)
+plt.savefig('Z_Time!/Ag64_spectrum.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
 SNR = Bremsstrahlung / Brem_err
 SNR_binned = func.binsum(SNR, binwidth)
 i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
-plt.savefig('Thicknesses/Pb282_SNR.png', bbox_inches='tight', dpi=dpi)
+plt.savefig('Z_Time!/Ag64_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
-Net282 = NetCounts
-print('Pb 2.82 mm counts:', NetCounts)
+NetAg = NetCounts
+print('Ag 0.64 mm counts:', NetCounts)
+
+######################################################################################################################################################
+# Pb 0.64 mm
+#####
+low, high = int(2540 / binwidth), int(2960 / binwidth)
+data, assigned_no, target_thick, mu_vals = Pbcounts64, 4, 0.064, Pbmu_vals
+#####
+x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
+minE, maxE = (low - 1), (high + 1)
+
+no_peak = no_peaking(x, y, minE, low, high, maxE)
+
+check_plot(y, x, no_peak, minE, low, high, maxE, assigned_no)
+plt.savefig('Z_Time!/Pb64_check.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
+plt.savefig('Z_Time!/Pb64_peak.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
+aligned = interp(channels) * (mu / Both_mu)
+aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
+aligned_binned = func.binsum(aligned, binwidth)
+
+Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
+Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
+binned_Brem = func.binsum(Bremsstrahlung, binwidth)
+spec_plot(channels_binned, binned_Brem, (assigned_no + 200))
+plt.axvline(75, color='g', lw = 0.3)
+plt.savefig('Z_Time!/Pb64_spectrum.png', bbox_inches = 'tight', dpi=dpi)
+plt.close()
+
+SNR = Bremsstrahlung / Brem_err
+SNR_binned = func.binsum(SNR, binwidth)
+i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
+plt.savefig('Z_Time!/Pb64_SNR.png', bbox_inches='tight', dpi=dpi)
+plt.close()
+
+print(channels_binned[i])
+
+NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
+NetPb = NetCounts
+print('Pb 0.64 mm counts:', NetCounts)
 
 ######################################################################################################################################################
 # Comparison
 ######################################################################################################################################################
 
-Thicknesses = [0.4, 0.64, 0.74, 1, 1.41, 2.82]
-Nets = np.array([Net40, Net64, Net74, Net100, Net141, Net282])
+Zs = [13, 29, 79, 82]
+Nets = [NetAl, NetCu, NetAg, NetPb]
 
 plt.figure(4000)
-plt.plot(Thicknesses, Nets)
-plt.savefig('Thicknesses/Comparison.png', bbox_inches='tight', dpi=dpi)
-plt.close()
-
-plt.figure(4001)
-plt.errorbar(Thicknesses, Nets, np.sqrt(Nets))
-plt.savefig('Thicknesses/Comparison2.png', bbox_inches='tight', dpi=dpi)
+plt.plot(Zs, Nets)
+plt.savefig('Z_Time!/Comparison.png', bbox_inches='tight', dpi=dpi)
 plt.close()
