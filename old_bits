@@ -1,0 +1,35 @@
+#low, high = 2436, 2820
+#minE, maxE = (low - 1), (high + 1)
+#data, assigned_no = BothBackground, 1000
+
+#no_peak = no_peaking(raw_channels, data, minE, low, high, maxE)
+
+#check_plot(data, raw_channels, no_peak, minE, low, high, maxE, assigned_no)
+#plt.savefig('Thicknesses/Combined_background_check', bbox_inches = 'tight', dpi=dpi)
+
+#A, mu, sigma, c = Gaussing(gauss, raw_channels, data, no_peak, low, high, (assigned_no + 100))
+#plt.savefig('Thicknesses/Combined_background_peak', bbox_inches = 'tight')
+#print(mu)
+
+################# Above: initial design for BremPb before realising having binning built in would be lovely
+
+
+###### Checking alignment for BremPb for Pb144
+
+#plt.figure(3000).add_axes((0,0,1.2,0.68))
+#plt.bar(channels_binned, func.logging(aligned_binned), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(aligned_binned1), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(func.binsum(BothBackground, binwidth)), width=5, alpha=0.6)
+#plt.axvline(1461, lw=0.2, color='g')
+#plt.axhline(0, color='k', lw=0.6)
+#plt.savefig('Thicknesses/Check_Alignment.png', bbox_inches = 'tight', dpi=dpi)
+
+###### Simlarly for Pb 144 checking all aligned & attenuated correctly
+
+#plt.figure(3000).add_axes((0,0,1.2,0.68))
+#plt.bar(channels_binned, func.logging(aligned_binned), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(bare_aligned_binned), width=5, alpha=0.6)
+#plt.bar(channels_binned, func.logging(func.binsum(func.atten(SourceBackground, mu_vals, target_thick), binwidth)), width=5, alpha=0.6)
+#plt.axvline(1461, lw=0.2, color='g')
+#plt.axhline(0, color='k', lw=0.6)
+#plt.savefig('Thicknesses/Check_Alignment.png', bbox_inches = 'tight', dpi=dpi)
