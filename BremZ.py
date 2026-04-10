@@ -11,7 +11,7 @@ cutoff = 8192
 binwidth = 10
 dpi = 600
 K40Energy = 1461
-interp_err_factor = 1
+interp_err_factor = 1.5
 SNR_lim = 5
 
 raw_channels = np.linspace(1, 16384, 16384)
@@ -186,7 +186,7 @@ Source_err = np.sqrt(BothBackground + bare_err ** 2)
 SourceBackBin = func.binsum(SourceBackground, binwidth)
 
 plt.figure(2000)
-plt.bar(channels_binned, func.logging(SourceBackBin+1), width=5)
+plt.bar(channels_binned, func.logging(SourceBackBin), width=5)
 plt.savefig('Z_Time!/Source_Background', bbox_inches = 'tight', dpi=dpi)
 
 ######################################################################################################################################################
@@ -280,6 +280,8 @@ A, mu, sigma, c = Gaussing(gauss, x, y, no_peak, low, high, (assigned_no + 100))
 plt.savefig('Z_Time!/Al64_peak.png', bbox_inches = 'tight', dpi=dpi)
 plt.close()
 
+print('Al FWHM:', (2.355 * sigma))
+
 interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k=3)
 aligned = interp(channels) * (mu / Both_mu)
 aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
@@ -303,7 +305,9 @@ print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetAl = NetCounts
-print('Al 0.64 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net64_err = Net_Err
+print('Al 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Cu 0.61 mm
@@ -350,7 +354,9 @@ print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetCu = NetCounts
-print('Cu 0.61 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net64_err = Net_Err
+print('Cu 0.61 mm counts:', NetCounts, '+/-', Net_Err)
 
 thing = func.binsum(func.atten(SourceBackground, mu_vals, target_thick) + bare_aligned, binwidth)
 
@@ -405,7 +411,9 @@ print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetAg = NetCounts
-print('Ag 0.64 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net64_err = Net_Err
+print('Ag 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 0.64 mm
@@ -449,7 +457,9 @@ print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetPb = NetCounts
-print('Pb 0.64 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net64_err = Net_Err
+print('Pb 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Comparison

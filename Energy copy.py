@@ -88,15 +88,17 @@ def Gaussing(fitfunc, x, y, nopeak, low, high, n):
     
     params, cov = scipy.optimize.curve_fit(fitfunc, xdata, ydata, p0=p0) # Fit for Gaussian parameters
     A, mu, sigma, c = params # Extract Gaussian parameters
+    perr = np.sqrt(np.diag(cov))
+    A_err, mu_err, sigma_err, c_err = perr
 
     fit = gauss(xdata, A, mu, sigma, c)
 
     plt.figure(n).add_axes((0, 0, 1.2, 0.68))
     plt.bar(xdata, ydata, width=1, alpha=0.3)
     plt.plot(xdata, fit)
-    return A, mu, sigma, c
+    return A, mu, sigma, c, (mu_err+0.5), sigma_err
 
-def efficienting(A0, halflife, T, Y, r, d, Ncounts, t): # Need A0 in Bq (counts / second), halflife and T (age of source) can just be same unit, time of reading t in seconds
+def efficienting(A0, halflife, T, Y, r, d, Ncounts, Ncounts_err, t): # Need A0 in Bq (counts / second), halflife and T (age of source) can just be same unit, time of reading t in seconds
     r_err = 0.05
     d_err = 0.224
     
@@ -111,7 +113,7 @@ def efficienting(A0, halflife, T, Y, r, d, Ncounts, t): # Need A0 in Bq (counts 
 
     Efficiency = (Ncounts[0] / N_on) * 100
 
-    N_err = ((Ncounts[0] + np.sqrt(Ncounts[0])) / N_on) * 100 - ((Ncounts[0] / N_on) * 100)
+    N_err = ((Ncounts[0] + Ncounts_err) / N_on) * 100 - ((Ncounts[0] / N_on) * 100)
     G_err = ((Ncounts[0] / N_on) * 100) - ((Ncounts[0] / (N_on + N_on_err)) * 100)
     Error = np.sqrt(N_err**2 + G_err**2)
     return Efficiency, Error
@@ -123,6 +125,15 @@ def gauss_area(func, A, mu, sigma, C, botlim, uplim):
 # chi-squared time!!!!!
 def chi_squared(model_params, model, x_data, y_data, y_err):
     return np.sum(((y_data - model(x_data, *model_params))/y_err)**2) # Note the `*model_params' here!
+
+def line(x, m, c):
+    return m*x + c
+
+def quadratic(x, a, b, c):
+    return a * x**2 + b * x + c
+
+def power_law(x, coeff, power, c):
+    return coeff * x ** (power) + c
 
 ######################################################################################################################################################
 # Chop of some peaks!
@@ -136,20 +147,30 @@ no_peak = no_peaking(channels_raw, Na22Counts, minE, low, high, maxE)
 check_plot(Na22Counts, channels_raw, no_peak, minE, low, high, maxE, 2)
 plt.savefig('Res&Eff/Na22_FirstPeak.svg', bbox_inches = 'tight')
 
-A, mu, sigma, c = Gaussing(gauss, channels_raw, Na22Counts, no_peak, low, high, 102)
+A, mu, sigma, c, mu_err, sigma_err = Gaussing(gauss, channels_raw, Na22Counts, no_peak, low, high, 102)
 plt.savefig('Res&Eff/Na22_Peak.svg', bbox_inches = 'tight')
 
-Na511Ech = 511 / mu
-Na511FWHM = 2.355 * sigma
-Na511E_FWHM = Na511FWHM * Na511Ech
+Ech = 511 / mu
+FWHM = 2.355 * sigma
+E_FWHM = FWHM * Ech
+Ech_err = Ech * (mu_err / mu)
+FWHM_err = 2.355 * sigma_err
+E_FWHM_err = E_FWHM * np.sqrt((Ech_err/Ech)**2 + (FWHM_err/FWHM)**2)
 
-print('Na511:', [mu, Na511Ech, Na511FWHM])
+Na511E_FWHM = E_FWHM
+Na511E_FWHM_err = E_FWHM_err
+
+print('Na511:', [mu, Ech, FWHM, Ech_err, E_FWHM_err])
 
 #############################################################
 
 area = gauss_area(gauss, A, mu, sigma, c, low, high)
 
-Na511_Efficiency = efficienting(420000, 2.6, 9.6, 1.807, r, d, area, 5589)
+area_error = gauss_area(gauss, A, mu+mu_err, sigma+sigma_err, c, low, high)
+area_err = area_error[0] - area[0]
+print('area:', area, '+/-', area_err)
+
+Na511_Efficiency = efficienting(420000, 2.6, 9.6, 1.807, r, d, area, area_err, 5589)
 
 ######################################################################################################################################################
 # Na22 Second peak - 1275 keV
@@ -161,20 +182,30 @@ no_peak = no_peaking(channels_raw, Na22Counts, minE, low, high, maxE)
 check_plot(Na22Counts, channels_raw, no_peak, minE, low, high, maxE, 3)
 plt.savefig('Res&Eff/Na22_SecondPeak.svg', bbox_inches = 'tight')
 
-A, mu, sigma, c = Gaussing(gauss, channels_raw, Na22Counts, no_peak, low, high, 103)
+A, mu, sigma, c, mu_err, sigma_err = Gaussing(gauss, channels_raw, Na22Counts, no_peak, low, high, 103)
 plt.savefig('Res&Eff/Na22_Peak2.svg', bbox_inches = 'tight')
 
-Na1275Ech = 1275 / mu
-Na1275FWHM = 2.355 * sigma
-Na1275E_FWHM = Na1275FWHM * Na1275Ech
+Ech = 1275 / mu
+FWHM = 2.355 * sigma
+E_FWHM = FWHM * Ech
+Ech_err = Ech * (mu_err / mu)
+FWHM_err = 2.355 * sigma_err
+E_FWHM_err = E_FWHM * np.sqrt((Ech_err/Ech)**2 + (FWHM_err/FWHM)**2)
 
-print('Na1275:', [Na1275Ech, Na1275FWHM])
+Na1275E_FWHM = E_FWHM
+Na1275E_FWHM_err = E_FWHM_err
+
+print('Na1275:', [mu, Ech, FWHM, Ech_err, E_FWHM_err])
 
 #############################################################
 
 area = gauss_area(gauss, A, mu, sigma, c, low, high)
 
-Na1275_Efficiency = efficienting(420000, 2.6, 9.6, 0.9994, r, d, area, 5589)
+area_error = gauss_area(gauss, A, mu+mu_err, sigma+sigma_err, c, low, high)
+area_err = area_error[0] - area[0]
+print('area:', area, '+/-', area_err)
+
+Na1275_Efficiency = efficienting(420000, 2.6, 9.6, 0.9994, r, d, area, area_err, 5589)
 
 ######################################################################################################################################################
 # Co60 First peak - 1173 keV
@@ -192,6 +223,7 @@ p0 = [9000, 2255, 120, 8000, 2560, 120, 0]
     
 params, cov = scipy.optimize.curve_fit(double_gauss, xdata, ydata, p0=p0) # Fit for Gaussian parameters
 A1, mu1, sigma1, A2, mu2, sigma2, C = params # Extract Gaussian parameters
+A1_err, mu1_err, sigma1_err, A2_err, mu2_err, sigma2_err, C_err = np.sqrt(np.diag(cov))
 
 fit1 = gauss(xdata, A1, mu1, sigma1, 0)
 fit2 = gauss(xdata, A2, mu2, sigma2, 0)
@@ -206,23 +238,37 @@ plt.savefig('Res&Eff/Co60_Peak.png', bbox_inches = 'tight', dpi=dpi)
 Co1173Ech = 1173 / mu1
 Co1173FWHM = 2.355 * sigma1
 Co1173E_FWHM = Co1173FWHM * Co1173Ech
+Co1173Ech_err = Co1173Ech * (mu1_err / mu1)
+Co1173FWHM_err = 2.355 * sigma1_err
+Co1173E_FWHM_err = Co1173E_FWHM * np.sqrt((Co1173Ech_err/Co1173Ech)**2 + (Co1173FWHM_err/Co1173FWHM)**2)
 
 Co1332Ech = 1332 / mu2
 Co1332FWHM = 2.355 * sigma2
 Co1332E_FWHM = Co1332FWHM * Co1332Ech
+Co1332Ech_err = Co1332Ech * (mu2_err / mu2)
+Co1332FWHM_err = 2.355 * sigma2_err
+Co1332E_FWHM_err = Co1332E_FWHM * np.sqrt((Co1332Ech_err/Co1332Ech)**2 + (Co1332FWHM_err/Co1332FWHM)**2)
 
-print('Co1173:', [Co1173Ech, Co1173FWHM])
-print('Co1332:', [Co1332Ech, Co1332FWHM])
+print('Co1173:', [Co1173Ech, Co1173FWHM, Co1173Ech_err, Co1173E_FWHM_err])
+print('Co1332:', [Co1332Ech, Co1332FWHM, Co1332Ech_err, Co1332E_FWHM_err])
 
 #############################################################
 
 area1 = gauss_area(gauss, A1, mu1, sigma1, C, low, high)
 area2 = gauss_area(gauss, A2, mu2, sigma2, C, low, high)
 
+area_error1 = gauss_area(gauss, A1, mu1+mu1_err, sigma1+sigma1_err, C, low, high)
+area_err1 = area_error1[0] - area1[0]
+print('area:', area1, '+/-', area_err1)
+
+area2_error = gauss_area(gauss, A2, mu2+mu2_err, sigma2+sigma2_err, C, low, high)
+area2_err = area2_error[0] - area2[0]
+print('area:', area2, '+/-', area2_err)
+
 d2 = d + 27.93
 
-Co1173_Efficiency = efficienting(3600000, 5.27, 9.64, 0.9985, r, d2, area1, 1446)
-Co1332_Efficiency = efficienting(3600000, 5.27, 9.64, 0.999826, r, d2, area2, 1446)
+Co1173_Efficiency = efficienting(3600000, 5.27, 9.64, 0.9985, r, d2, area1, area_err1, 1446)
+Co1332_Efficiency = efficienting(3600000, 5.27, 9.64, 0.999826, r, d2, area2, area2_err, 1446)
 
 ######################################################################################################################################################
 # Cs137 Peak - 661.7 keV
@@ -234,36 +280,64 @@ no_peak = no_peaking(channels_raw, Cs137Counts, minE, low, high, maxE)
 check_plot(Cs137Counts, channels_raw, no_peak, minE, low, high, maxE, 5)
 plt.savefig('Res&Eff/Cs137_OnlyPeak.svg', bbox_inches = 'tight')
 
-A, mu, sigma, c = Gaussing(gauss, channels_raw, Cs137Counts, no_peak, low, high, 105)
+A, mu, sigma, c, mu_err, sigma_err = Gaussing(gauss, channels_raw, Cs137Counts, no_peak, low, high, 105)
 plt.savefig('Res&Eff/Cs137_Peak.svg', bbox_inches = 'tight')
 
-CsEch = 661.7 / mu
-CsFWHM = 2.355 * sigma
-CsE_FWHM = CsFWHM * CsEch
+Ech = 661.7 / mu
+FWHM = 2.355 * sigma
+E_FWHM = FWHM * Ech
+Ech_err = Ech * (mu_err / mu)
+FWHM_err = 2.355 * sigma_err
+E_FWHM_err = E_FWHM * np.sqrt((Ech_err/Ech)**2 + (FWHM_err/FWHM)**2)
 
-print('Cs661.7:', [CsEch, CsFWHM, CsE_FWHM])
+CsE_FWHM = E_FWHM
+CsE_FWHM_err = E_FWHM_err
+
+print('Cs662:', [mu, Ech, FWHM, Ech_err, E_FWHM_err])
 
 #############################################################
 
 area = gauss_area(gauss, A, mu, sigma, c, low, high)
 
-print(area)
+area_error = gauss_area(gauss, A, mu+mu_err, sigma+sigma_err, c, low, high)
+area_err = area_error[0] - area[0]
+print('area:', area, '+/-', area_err)
 
-Cs_Efficiency = efficienting(370000, 30, 47.4, 0.8499, r, d, area, 4651)
+Cs_Efficiency = efficienting(370000, 30, 47.4, 0.8499, r, d, area, area_err, 4651)
 
 ######################################################################################################################################################
 # Resolutions
 
+print(type(Na511E_FWHM_err), Na511E_FWHM_err)
+print(type(CsE_FWHM_err), CsE_FWHM_err)
+print(type(Co1173E_FWHM_err), Co1173E_FWHM_err)
+print(type(Na1275E_FWHM_err), Na1275E_FWHM_err)
+print(type(Co1332E_FWHM_err), Co1332E_FWHM_err)
+
 Energies = np.array([511, 661.7, 1173, 1275, 1332])
 E_FWHMs = np.array([Na511E_FWHM, CsE_FWHM, Co1173E_FWHM, Na1275E_FWHM, Co1332E_FWHM])#, 214.56079073121322])
+E_FWHM_errs = np.array([Na511E_FWHM_err, CsE_FWHM_err, Co1173E_FWHM_err, Na1275E_FWHM_err, Co1332E_FWHM_err])
 
 Resolutions = E_FWHMs / Energies * 100
+Resolution_errs = E_FWHM_errs / Energies * 100
 
 print('Resolutions:', Resolutions)
+print('Resolution errors:', Resolution_errs)
+
+p0 = [-0.01, 20]
+params, cov = scipy.optimize.curve_fit(line, Energies, Resolutions, p0)
+print(params)
+m, c = params
+x_grid = np.linspace(500, 1350, 1000)
+y_line = line(x_grid, m, c)
+line_chi = chi_squared((m, c), line, Energies, Resolutions, Resolution_errs) / 3
+print('line chi ssquared =', line_chi)
 
 plt.figure(200)
-plt.plot(Energies, Resolutions)
-plt.plot((Energies[0], Energies[-1]), (Resolutions[0], Resolutions[-1]), linestyle='dashed')
+#plt.plot(Energies, Resolutions)
+#plt.plot((Energies[0], Energies[-1]), (Resolutions[0], Resolutions[-1]), linestyle='dashed')
+plt.errorbar(Energies, Resolutions, yerr=Resolution_errs, linestyle='none', fmt='x')
+plt.plot(x_grid, y_line, linestyle='dashed')
 plt.savefig('Res&Eff/Resolution', bbox_inches='tight')
 
 ######################################################################################################################################################
@@ -271,16 +345,6 @@ plt.savefig('Res&Eff/Resolution', bbox_inches='tight')
 
 Efficiencies = [Na511_Efficiency[0], Cs_Efficiency[0], Co1173_Efficiency[0], Na1275_Efficiency[0], Co1332_Efficiency[0]]
 Eff_err = np.array([Na511_Efficiency[1], Cs_Efficiency[1], Co1173_Efficiency[1], Na1275_Efficiency[1], Co1332_Efficiency[1]])
-
-
-def line(x, m, c):
-    return m*x + c
-
-def quadratic(x, a, b, c):
-    return a * x**2 + b * x + c
-
-def power_law(x, coeff, power, c):
-    return coeff * x ** (power) + c
 
 p0_1 = [-0.01, 20]
 params, cov = scipy.optimize.curve_fit(line, Energies, Efficiencies, p0_1)

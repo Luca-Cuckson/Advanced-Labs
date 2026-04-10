@@ -11,7 +11,7 @@ cutoff = 8192
 binwidth = 10
 dpi = 600
 K40Energy = 1461
-interp_err_factor = 1
+interp_err_factor = 1.5
 SNR_lim = 5
 
 raw_channels = np.linspace(1, 16384, 16384)
@@ -127,6 +127,9 @@ def find_end(x, y, limit, n):
     plt.axhline(-np.log10(SNR_lim), color='r', lw=0.3)
     return end
 
+def quadratic(x, a, b, c):
+    return a * x**2 + b * x + c
+
 ######################################################################################################################################################
 # Backgrounds
 ######################################################################################################################################################
@@ -213,6 +216,8 @@ mu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
 low, high = int(2435 / binwidth), int(2810 / binwidth)
 data, assigned_no, target_thick = Pbcounts40, 1, 0.04
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -244,11 +249,16 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb40_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+cut40 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net40 = NetCounts
-print('Pb 0.40 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net40_err = Net_Err
+
+print(np.sum(Bremsstrahlung))
+print('Pb 0.40 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 0.64 mm
@@ -256,6 +266,8 @@ print('Pb 0.40 mm counts:', NetCounts)
 low, high = int(2540 / binwidth), int(2960 / binwidth)
 data, assigned_no, target_thick = Pbcounts64, 2, 0.064
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -287,11 +299,17 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb64_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+np.savetxt('Pb64_results', [channels, Bremsstrahlung, Brem_err])
+
+cut64 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net64 = NetCounts
-print('Pb 0.64 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net64_err = Net_Err
+print(np.sum(Bremsstrahlung))
+print('Pb 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 0.74 mm
@@ -299,6 +317,8 @@ print('Pb 0.64 mm counts:', NetCounts)
 low, high = int(2430 / binwidth), int(2820 / binwidth)
 data, assigned_no, target_thick = Pbcounts74, 3, 0.074
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -330,11 +350,38 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb74_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+cut74 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net74 = NetCounts
-print('Pb 0.74 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net74_err = Net_Err
+
+print(np.sum(Bremsstrahlung))
+print('Pb 0.74 mm counts:', NetCounts, '+/-', Net_Err)
+
+########################################################
+
+a, b, c = 2.41629589e-06, -1.69925760e-02, 2.31120387e+01
+
+print(channels[i*binwidth])
+begin = int(511 / E_Ch)
+print(channels[begin])
+
+efficiency_x = channels[begin:i*binwidth]
+count_y = Bremsstrahlung[begin:i*binwidth]
+efficiency = quadratic(efficiency_x, a, b, c)
+
+print(efficiency)
+
+actual_brem = count_y * 100 / efficiency
+actual_binned = func.binsum(actual_brem, binwidth)
+actual_x = func.binmean(efficiency_x, binwidth)
+
+plt.figure(5000)
+plt.bar(actual_x, actual_binned, width=5)
+plt.savefig('Thicknesses/Pb74_actual.png', bbox_inches='tight', dpi=dpi)
 
 ######################################################################################################################################################
 # Pb 1.00 mm
@@ -342,6 +389,8 @@ print('Pb 0.74 mm counts:', NetCounts)
 low, high = int(2580 / binwidth), int(3010 / binwidth)
 data, assigned_no, target_thick = Pbcounts100, 4, 0.1
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -373,11 +422,16 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb100_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+cut100 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net100 = NetCounts
-print('Pb 1.00 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net100_err = Net_Err
+
+print(np.sum(Bremsstrahlung))
+print('Pb 1.00 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 1.41 mm
@@ -385,6 +439,8 @@ print('Pb 1.00 mm counts:', NetCounts)
 low, high = int(2430 / binwidth), int(2810 / binwidth)
 data, assigned_no, target_thick = PbCounts141, 5, 0.141
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -417,11 +473,16 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb141_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+cut141 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net141 = NetCounts
-print('Pb 1.41 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net141_err = Net_Err
+
+print(np.sum(Bremsstrahlung))
+print('Pb 1.41 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 2.82 mm
@@ -429,6 +490,8 @@ print('Pb 1.41 mm counts:', NetCounts)
 low, high = int(2430 / binwidth), int(2810 / binwidth)
 data, assigned_no, target_thick = Pbcounts282, 6, 0.282
 #####
+print(np.sum(data))
+
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
 
@@ -460,11 +523,16 @@ i = find_end(channels_binned, SNR_binned, SNR_lim, assigned_no)
 plt.savefig('Thicknesses/Pb282_SNR.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
+cut282 = channels_binned[i]
 print(channels_binned[i])
 
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 Net282 = NetCounts
-print('Pb 2.82 mm counts:', NetCounts)
+Net_Err = np.sqrt(np.sum(Brem_err**2))
+Net282_err = Net_Err
+
+print(np.sum(Bremsstrahlung))
+print('Pb 2.82 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Comparison
@@ -472,13 +540,23 @@ print('Pb 2.82 mm counts:', NetCounts)
 
 Thicknesses = [0.4, 0.64, 0.74, 1, 1.41, 2.82]
 Nets = np.array([Net40, Net64, Net74, Net100, Net141, Net282])
+Nets_err = np.array([Net40_err, Net64_err, Net74_err, Net100_err, Net141_err, Net282_err])
 
 plt.figure(4000)
-plt.plot(Thicknesses, Nets)
+#plt.plot(Thicknesses, Nets)
+plt.errorbar(Thicknesses, Nets, Nets_err)
 plt.savefig('Thicknesses/Comparison.png', bbox_inches='tight', dpi=dpi)
 plt.close()
 
 plt.figure(4001)
 plt.errorbar(Thicknesses, Nets, np.sqrt(Nets))
 plt.savefig('Thicknesses/Comparison2.png', bbox_inches='tight', dpi=dpi)
+plt.close()
+
+Times = [75043, 159519, 88875, 231052, 244860, 332296]
+Cuts = [cut40, cut64, cut74, cut100, cut141, cut282]
+
+plt.figure(4002)
+plt.plot(Times, Cuts)
+plt.savefig('Thicknesses/Comparison3.png', bbox_inches='tight', dpi=dpi)
 plt.close()

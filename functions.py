@@ -27,15 +27,32 @@ def atten(counts, mu, x): # thickness x in cm
     return counts * np.exp(-mu * x)
 
 
-def logging(counts):  # VERY IMPORTANT: FOR VISUALISING PLOTS ONLY, NOT SOUND FOR DATA ANALYSIS
-    logged = np.empty(len(counts))
-    for i in range(len(counts)):
-        if -1 <= counts[i] <= 1:
-            logged[i] = 0.0
-        if 1 < counts[i]:
-            logged[i] = np.log10(counts[i])
-        if counts[i] < -1:
-            logged[i] = -np.log10(-counts[i])
+#def logging(counts):  # VERY IMPORTANT: FOR VISUALISING PLOTS ONLY, NOT SOUND FOR DATA ANALYSIS
+#    logged = np.empty(len(counts))
+#    for i in range(len(counts)):
+#        if -1 <= counts[i] <= 1:
+#            logged[i] = 0.0
+#        if 1 < counts[i]:
+#            logged[i] = np.log10(counts[i])
+#        if counts[i] < -1:
+#            logged[i] = -np.log10(-counts[i])
+#    return logged
+
+#def logging(counts):  # VERY IMPORTANT: FOR VISUALISING PLOTS ONLY, NOT SOUND FOR DATA ANALYSIS
+#    logged = np.empty(len(counts))
+#    for i in range(len(counts)):
+#        if counts[i] <= 1:
+#            logged[i] = 0.0
+#        if 1 < counts[i]:
+#            logged[i] = np.log10(counts[i])
+
+def logging(counts):
+    counts = np.asarray(counts, dtype=float)
+    logged = np.zeros_like(counts)
+
+    mask = counts > 1
+    logged[mask] = np.log10(counts[mask])
+
     return logged
 
 
