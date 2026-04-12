@@ -265,7 +265,7 @@ plt.savefig('Z_Time!/Cu_mus.svg', bbox_inches = 'tight')
 # Al 0.64 mm
 #####
 low, high = int(2435 / binwidth), int(2820 / binwidth)
-data, assigned_no, target_thick, mu_vals = Alcounts64, 1, 0.064, Almu_vals
+data, assigned_no, target_thick, mu_vals = Alcounts64, 1, 0.063, Almu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
@@ -306,14 +306,14 @@ print(channels_binned[i])
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetAl = NetCounts
 Net_Err = np.sqrt(np.sum(Brem_err**2))
-Net64_err = Net_Err
+NetAl_err = Net_Err
 print('Al 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Cu 0.61 mm
 #####
 low, high = int(2440 / binwidth), int(2840 / binwidth)
-data, assigned_no, target_thick, mu_vals = Cucounts64, 2, 0.061, Cumu_vals
+data, assigned_no, target_thick, mu_vals = Cucounts64, 2, 0.060, Cumu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
@@ -355,10 +355,12 @@ print(channels_binned[i])
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetCu = NetCounts
 Net_Err = np.sqrt(np.sum(Brem_err**2))
-Net64_err = Net_Err
+NetCu_err = Net_Err
 print('Cu 0.61 mm counts:', NetCounts, '+/-', Net_Err)
 
 thing = func.binsum(func.atten(SourceBackground, mu_vals, target_thick) + bare_aligned, binwidth)
+
+np.savetxt('Cu61_results', [Bremsstrahlung, Brem_err])
 
 plt.figure(5000).add_axes((0,0,1.2,0.68))
 plt.bar(channels_binned, func.logging(aligned_binned), width=5, alpha=0.6)
@@ -373,7 +375,7 @@ plt.savefig('Z_Time!/Cu_Check_Alignment.png', bbox_inches = 'tight', dpi=dpi)
 # Ag 0.64 mm
 #####
 low, high = int(2460 / binwidth), int(2840 / binwidth)
-data, assigned_no, target_thick, mu_vals = Agcounts64, 3, 0.064, Agmu_vals
+data, assigned_no, target_thick, mu_vals = Agcounts64, 3, 0.063, Agmu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
@@ -412,17 +414,18 @@ print(channels_binned[i])
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetAg = NetCounts
 Net_Err = np.sqrt(np.sum(Brem_err**2))
-Net64_err = Net_Err
+NetAg_err = Net_Err
 print('Ag 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
 # Pb 0.64 mm
 #####
 low, high = int(2540 / binwidth), int(2960 / binwidth)
-data, assigned_no, target_thick, mu_vals = Pbcounts64, 4, 0.064, Pbmu_vals
+data, assigned_no, target_thick, mu_vals = Pbcounts64, 4, 0.065, Pbmu_vals
 #####
 x, y = func.binmean(raw_channels, binwidth), func.binsum(data, binwidth)
 minE, maxE = (low - 1), (high + 1)
+
 
 no_peak = no_peaking(x, y, minE, low, high, maxE)
 
@@ -438,6 +441,7 @@ interp = scipy.interpolate.make_interp_spline(channels * (Both_mu / mu), data, k
 aligned = interp(channels) * (mu / Both_mu)
 aligned_err = np.sqrt(abs(aligned)) * interp_err_factor
 aligned_binned = func.binsum(aligned, binwidth)
+
 
 Bremsstrahlung = aligned - func.atten(SourceBackground, mu_vals, target_thick) - bare_aligned
 Brem_err = np.sqrt(aligned_err ** 2 + Source_err ** 2 + bare_err ** 2)
@@ -458,7 +462,7 @@ print(channels_binned[i])
 NetCounts = np.sum(binned_Brem[int(30/binwidth) : i])
 NetPb = NetCounts
 Net_Err = np.sqrt(np.sum(Brem_err**2))
-Net64_err = Net_Err
+NetPb_err = Net_Err
 print('Pb 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 ######################################################################################################################################################
@@ -467,6 +471,12 @@ print('Pb 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 
 Zs = [13, 29, 79, 82]
 Nets = [NetAl, NetCu, NetAg, NetPb]
+Nets_err = [NetAl_err, NetCu_err, NetAg_err, NetPb_err]
+
+print(Nets_err)
+
+np.savetxt('Z_nets', [Zs, Nets, Nets_err])
+
 
 plt.figure(4000)
 plt.plot(Zs, Nets)

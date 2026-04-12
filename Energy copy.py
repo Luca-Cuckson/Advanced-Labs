@@ -308,6 +308,11 @@ Cs_Efficiency = efficienting(370000, 30, 47.4, 0.8499, r, d, area, area_err, 465
 ######################################################################################################################################################
 # Resolutions
 
+plt.rcParams["font.size"] = 16
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = ["Times New Roman"]
+plt.rcParams['mathtext.fontset'] = 'cm'
+
 print(type(Na511E_FWHM_err), Na511E_FWHM_err)
 print(type(CsE_FWHM_err), CsE_FWHM_err)
 print(type(Co1173E_FWHM_err), Co1173E_FWHM_err)
@@ -338,7 +343,9 @@ plt.figure(200)
 #plt.plot((Energies[0], Energies[-1]), (Resolutions[0], Resolutions[-1]), linestyle='dashed')
 plt.errorbar(Energies, Resolutions, yerr=Resolution_errs, linestyle='none', fmt='x')
 plt.plot(x_grid, y_line, linestyle='dashed')
-plt.savefig('Res&Eff/Resolution', bbox_inches='tight')
+plt.ylabel(r"% Resolution")
+plt.xlabel(r"Energy (keV)")
+plt.savefig('Res&Eff/Resolution', bbox_inches='tight', dpi=dpi)
 
 ######################################################################################################################################################
 # Efficiencies
@@ -377,7 +384,9 @@ print('Efficiencies error:', Eff_err)
 
 plt.figure(300)
 plt.errorbar(Energies, Efficiencies, yerr=(Eff_err), linestyle='none', fmt='x')
-plt.plot(x_grid, y_line, linestyle='dashed')
+#plt.plot(x_grid, y_line, linestyle='dashed')
 plt.plot(x_grid, y_quad, linestyle='dashed')
 #plt.plot(x_grid, y_power, linestyle='dashed')
+plt.ylabel(r"% Efficiency")
+plt.xlabel(r"Energy (keV)")
 plt.savefig('Res&Eff/Efficiency', bbox_inches='tight', dpi=300)

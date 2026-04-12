@@ -181,6 +181,8 @@ bare_err = np.sqrt(abs(bare_aligned)) * interp_err_factor
 
 bare_aligned_binned = func.binsum(bare_aligned, binwidth)
 
+np.savetxt('BB_results', [bare_aligned, bare_err])
+
 ######################################################################################################################################################
 # Source background
 
@@ -192,6 +194,8 @@ SourceBackBin = func.binsum(SourceBackground, binwidth)
 plt.figure(2000)
 plt.bar(channels_binned, func.logging(SourceBackBin+1), width=5)
 plt.savefig('Thicknesses/Source_Background', bbox_inches = 'tight', dpi=dpi)
+
+np.savetxt('SB_results', [SourceBackground, Source_err])
 
 ######################################################################################################################################################
 # Calculating attenuation coefficients
@@ -214,7 +218,7 @@ mu_vals = np.exp(log_interp(np.log(channels)))  # convert keV → MeV
 # Pb 0.40 mm
 #####
 low, high = int(2435 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = Pbcounts40, 1, 0.04
+data, assigned_no, target_thick = Pbcounts40, 1, 0.039
 #####
 print(np.sum(data))
 
@@ -264,7 +268,7 @@ print('Pb 0.40 mm counts:', NetCounts, '+/-', Net_Err)
 # Pb 0.64 mm
 #####
 low, high = int(2540 / binwidth), int(2960 / binwidth)
-data, assigned_no, target_thick = Pbcounts64, 2, 0.064
+data, assigned_no, target_thick = Pbcounts64, 2, 0.063
 #####
 print(np.sum(data))
 
@@ -315,7 +319,7 @@ print('Pb 0.64 mm counts:', NetCounts, '+/-', Net_Err)
 # Pb 0.74 mm
 #####
 low, high = int(2430 / binwidth), int(2820 / binwidth)
-data, assigned_no, target_thick = Pbcounts74, 3, 0.074
+data, assigned_no, target_thick = Pbcounts74, 3, 0.073
 #####
 print(np.sum(data))
 
@@ -379,15 +383,25 @@ actual_brem = count_y * 100 / efficiency
 actual_binned = func.binsum(actual_brem, binwidth)
 actual_x = func.binmean(efficiency_x, binwidth)
 
+local_brem_err = Brem_err[begin:i*binwidth]
+
+actual_brem_err = np.sqrt((local_brem_err / Bremsstrahlung[begin:i*binwidth])**2 + 0.007**2)
+actual_sum = np.sum(actual_brem)
+actual_sum_err = np.sqrt(np.sum(actual_brem_err**2))
+
+np.savetxt('Pb74_actual', [efficiency_x, actual_brem, actual_brem_err])
+
 plt.figure(5000)
 plt.bar(actual_x, actual_binned, width=5)
 plt.savefig('Thicknesses/Pb74_actual.png', bbox_inches='tight', dpi=dpi)
+
+print('Actual 0.74 counts:', actual_sum, '+/-', actual_sum_err)
 
 ######################################################################################################################################################
 # Pb 1.00 mm
 #####
 low, high = int(2580 / binwidth), int(3010 / binwidth)
-data, assigned_no, target_thick = Pbcounts100, 4, 0.1
+data, assigned_no, target_thick = Pbcounts100, 4, 0.099
 #####
 print(np.sum(data))
 
@@ -437,7 +451,7 @@ print('Pb 1.00 mm counts:', NetCounts, '+/-', Net_Err)
 # Pb 1.41 mm
 #####
 low, high = int(2430 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = PbCounts141, 5, 0.141
+data, assigned_no, target_thick = PbCounts141, 5, 0.140
 #####
 print(np.sum(data))
 
@@ -488,7 +502,7 @@ print('Pb 1.41 mm counts:', NetCounts, '+/-', Net_Err)
 # Pb 2.82 mm
 #####
 low, high = int(2430 / binwidth), int(2810 / binwidth)
-data, assigned_no, target_thick = Pbcounts282, 6, 0.282
+data, assigned_no, target_thick = Pbcounts282, 6, 0.281
 #####
 print(np.sum(data))
 
@@ -541,6 +555,8 @@ print('Pb 2.82 mm counts:', NetCounts, '+/-', Net_Err)
 Thicknesses = [0.4, 0.64, 0.74, 1, 1.41, 2.82]
 Nets = np.array([Net40, Net64, Net74, Net100, Net141, Net282])
 Nets_err = np.array([Net40_err, Net64_err, Net74_err, Net100_err, Net141_err, Net282_err])
+
+np.savetxt('Thickness_nets', [Thicknesses, Nets, Nets_err])
 
 plt.figure(4000)
 #plt.plot(Thicknesses, Nets)
