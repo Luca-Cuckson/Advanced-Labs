@@ -18,7 +18,7 @@ end3 = end2 * binwidth
 
 raw_channels = np.linspace(1, 16384, 16384)
 
-plt.rcParams["font.size"] = 16
+plt.rcParams["font.size"] = 22
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 plt.rcParams['mathtext.fontset'] = 'cm'
@@ -61,10 +61,12 @@ def Gaussing(fitfunc, x, y, nopeak, low, high, n):
 def K40_plot1(counts, x, no_peak, minE, low, high, maxE, n):
     x, counts = x[:end2], counts[:end2]
 
+    plt.rcParams["font.size"] = 19
+
     plt.figure(n).add_axes((0, 0, 1, 0.8))
-    plt.step(x, counts, linewidth=1.2, alpha=0.6)
-    plt.step(x[low:high], no_peak, linewidth=0.2, alpha=0.6)
-    plt.fill_between(x[low:high], no_peak, step='mid', alpha=0.3, color='r')
+    plt.step(x, counts, linewidth=1.2, color='mediumorchid')
+    plt.step(x[low:high], no_peak, linewidth=0.2, alpha=0.6, color='blueviolet')
+    plt.fill_between(x[low:high], no_peak, step='mid', alpha=0.3, color='blueviolet')
     #plt.axvline(x[low], color='r', lw=0.2)
     #plt.axvline(x[high], color='r', lw=0.2)
     plt.axhline(0, color='k', lw=0.3)
@@ -84,19 +86,24 @@ def K40_plot1(counts, x, no_peak, minE, low, high, maxE, n):
 
     fit = gauss(xdata, A, mu, sigma, c)
 
-    plt.figure(n).add_axes((0.55, 0.35, 0.42, 0.42))
-    plt.bar(xdata, ydata, width=10, alpha=0.3)
-    plt.plot(xdata, fit)
-    plt.tick_params(axis="both", length=0, labelbottom=False, labelleft=False)
+    plt.rcParams["font.size"] = 16
+
+    plt.figure(n).add_axes((0.57, 0.37, 0.42, 0.42))
+    plt.bar(xdata, ydata, width=10, alpha=0.3, color='mediumorchid')
+    plt.plot(xdata, fit, color='blueviolet')
+    #plt.tick_params(axis="both", length=0, labelbottom=False, labelleft=False)
     plt.ylim([0, max(ydata) * 1.1])
+    plt.xticks([2600,2750,2900])
 
 def K40_plot2(counts, x, no_peak, minE, low, high, maxE, n):
     x, counts = x[:end3], counts[:end3]
 
+    plt.rcParams["font.size"] = 19
+
     plt.figure(n).add_axes((0, 0, 1, 0.8))
-    plt.step(x, counts, linewidth=1.2, alpha=0.6)
-    plt.step(x[low:high], no_peak, linewidth=0.2, alpha=0.6)
-    plt.fill_between(x[low:high], no_peak, step='mid', alpha=0.3, color='r')
+    plt.step(x, counts, linewidth=1.2, color='mediumorchid')
+    plt.step(x[low:high], no_peak, linewidth=0.2, alpha=0.6, color='blueviolet')
+    plt.fill_between(x[low:high], no_peak, step='mid', alpha=0.3, color='blueviolet')
     #plt.axvline(x[low], color='r', lw=0.2)
     #plt.axvline(x[high], color='r', lw=0.2)
     plt.axhline(0, color='k', lw=0.3)
@@ -118,14 +125,17 @@ def K40_plot2(counts, x, no_peak, minE, low, high, maxE, n):
     fit1 = gauss(xdata, A1, mu1, sigma1, 0)
     fit2 = gauss(xdata, A2, mu2, sigma2, 0)
 
+    plt.rcParams["font.size"] = 16
 
-    plt.figure(n).add_axes((0.63, 0.43, 0.36, 0.36))
-    plt.bar(xdata, ydata, width=10, alpha=0.08)
+    plt.figure(n).add_axes((0.63, 0.46, 0.36, 0.33))
+    plt.bar(xdata, ydata, width=10, alpha=0.08, color='mediumorchid')
     plt.plot(xdata, fit1, color='darkviolet')
     plt.plot(xdata, fit2, color='magenta')
     plt.plot(xdata, fit1 + fit2, color='indigo')
     plt.ylim([0, max(ydata)*1.05])
-    plt.tick_params(axis="both", length=0, labelbottom=False, labelleft=False)
+    #plt.tick_params(axis="both", length=0, labelbottom=False, labelleft=False)
+    plt.xticks([2000,2300,2600])
+    plt.yticks([3000,6000,9000])
 
 def K40_plot(counts, x, no_peak, minE, low, high, maxE, n):
     x, counts = x[:end2], counts[:end2]
@@ -179,10 +189,10 @@ def spec_plot(x, y, yerror, fin, n):
 
 
     plt.figure(n).add_axes((0,0,1.2,0.8))
-    plt.step(x[:finbin+1], y[:finbin+1], where='mid', linewidth=1.2, color='skyblue')
-    plt.fill_between(x[:finbin+1], y[:finbin+1], step='mid', alpha=0.6, color='skyblue')
-    plt.step(x[finbin:], y[finbin:], where='mid', linewidth=1.2, color='orange')
-    plt.fill_between(x[finbin:], y[finbin:], step='mid', alpha=0.6, color='orange')
+    plt.step(x[:finbin+1], y[:finbin+1], where='mid', linewidth=1.2, color='mediumorchid')
+    plt.fill_between(x[:finbin+1], y[:finbin+1], step='mid', alpha=0.6, color='mediumorchid')
+    plt.step(x[finbin:], y[finbin:], where='mid', linewidth=1.2, color='mediumorchid', alpha = 0.6)
+    plt.fill_between(x[finbin:], y[finbin:], step='mid', alpha=0.3, color='mediumorchid')
     ##plt.fill_between(x, y+yerror, y-yerror, step='mid', alpha=0.4, color='gray')
     #plt.fill_between(peakx, peaky, step='mid', alpha=0.3, color='r')
     plt.axvline(fin, color='k', lw=1, linestyle='dotted')
@@ -193,17 +203,18 @@ def spec_plot(x, y, yerror, fin, n):
     plt.ylabel(r"Counts")
 
     plt.figure(n).add_axes((0,-0.3,1.2,0.28))
-    plt.step(x[:finbin+1], binned_SNR[:finbin+1], where='mid', linewidth=1.2, color='skyblue')
-    plt.fill_between(x[:finbin+1], binned_SNR[:finbin+1], step='mid', alpha=0.6, color='skyblue')
-    plt.step(x[finbin:], binned_SNR[finbin:], where='mid', linewidth=1.2, color='orange')
-    plt.fill_between(x[finbin:], binned_SNR[finbin:], step='mid', alpha=0.6, color='orange')
+    plt.step(x[:finbin+1], binned_SNR[:finbin+1], where='mid', linewidth=1.2, color='mediumorchid')
+    plt.fill_between(x[:finbin+1], binned_SNR[:finbin+1], step='mid', alpha=0.6, color='mediumorchid')
+    plt.step(x[finbin:], binned_SNR[finbin:], where='mid', linewidth=1.2, color='mediumorchid', alpha = 0.6)
+    plt.fill_between(x[finbin:], binned_SNR[finbin:], step='mid', alpha=0.3, color='mediumorchid')
     plt.axhline(5, xmin=0, color='k', lw=1, linestyle='dashed')
     plt.axvline(fin, color='k', lw=1, linestyle='dotted')
     plt.xlim([0,max(x)])
     plt.yscale('log')
     plt.ylabel(r"SNR")
     plt.xlabel(r"Energy (keV)")
-    plt.xticks(np.linspace(0, 2200, 12))
+    plt.xticks(np.linspace(0, 2100, 8))
+    plt.yticks([1,100, 10000])
 
 ###############################################################################################################
 # Pb 0.64 mm target raw spectrum
@@ -231,6 +242,8 @@ plt.close()
 ###############################################################################################################
 # Pb 0.64 mm target Bremsstrahlung spectrum
 
+plt.rcParams["font.size"] = 22
+
 channels, brem, brem_err = np.loadtxt('Report/Pb64_results')
 channels, brem, brem_err = channels[30:], brem[30:], brem_err[30:]
 i = 1146
@@ -241,6 +254,8 @@ plt.savefig('Report/Pb64_spectrum', bbox_inches='tight', dpi=dpi)
 
 ###############################################################################################################
 # Cu 0.61 mm target Bremsstrahlung spectrum
+
+plt.rcParams["font.size"] = 22
 
 brem, brem_err = np.loadtxt('Report/Cu61_results')
 brem, brem_err = brem[30:], brem_err[30:]
@@ -290,6 +305,8 @@ plt.close()
 ###############################################################################################################
 # Source background spectrum
 
+plt.rcParams["font.size"] = 18
+
 SB, SB_err = np.loadtxt('Report/SB_results')
 x, SB = x[LLD:], SB[LLD:]
 x, SB = func.binmean(channels, binwidth), func.binsum(SB, binwidth)
@@ -299,7 +316,7 @@ SB, x = SB[:binned_end], x[:binned_end]
 #plt.savefig('Report/SB_spectrum2', bbox_inches='tight', dpi=dpi)
 
 plt.figure(48).add_axes((0,0,1.0,0.8))
-plt.step(x, no_negative(SB), where='mid', linewidth=1.2, alpha=0.6)
+plt.step(x, no_negative(SB), where='mid', linewidth=1.2, color='mediumorchid')
 plt.ylim([1, max(SB)*mult])
 plt.xlim([0, max(x)])
 plt.yscale('log')
@@ -310,11 +327,13 @@ plt.savefig('Report/SB_spectrum', bbox_inches='tight', dpi=dpi)
 ###############################################################################################################
 # Thicknesses
 
+plt.rcParams["font.size"] = 20
+
 Thicknesses, Nets, Nets_err = np.loadtxt('Report/Thickness_nets')
 
 plt.figure(4001)
-plt.bar(Thicknesses, Nets, width=0.1)
-plt.bar(Thicknesses, height= 2*Nets_err, bottom= Nets-Nets_err, width=0.1, alpha=0.4, color='gray')
+plt.bar(Thicknesses, Nets, width=0.1, color='blueviolet', alpha=0.6)
+plt.bar(Thicknesses, height= 2*Nets_err, bottom= Nets-Nets_err, width=0.1, alpha=0.6, color='mediumorchid')
 plt.ylabel(r"Net Counts")
 plt.xlabel(r"Target Thickness (mm)")
 plt.yscale('log')
@@ -324,8 +343,9 @@ plt.close()
 Ref = Nets[1]
 Nets, Nets_err = Nets / Ref, Nets_err / Ref
 
-plt.figure(4000)
-plt.errorbar(Thicknesses, Nets, Nets_err, linestyle='none', marker='.')
+plt.figure(4000).add_axes((0,0,1,0.6))
+plt.yticks([0.6,0.7,0.8,0.9,1.0,1.1])
+plt.errorbar(Thicknesses, Nets, Nets_err, linestyle='none', marker='v', color='blueviolet', ecolor='mediumorchid', markersize=8)
 plt.ylabel(r"Relative Yield")
 plt.xlabel(r"Target Thickness (mm)")
 plt.savefig('Report/ThickComparison.png', bbox_inches='tight', dpi=dpi)
@@ -337,8 +357,9 @@ plt.close()
 Zs, Nets, Nets_err = np.loadtxt('Report/Z_nets')
 Nets, Nets_err = Nets / Ref, Nets_err / Ref
 
-plt.figure(4008)
-plt.errorbar(Zs, Nets, Nets_err, linestyle='none', marker='.')
+plt.figure(4008).add_axes((0,0,1,0.6))
+#plt.yticks([0.6,0.7,0.8,0.9,1.0,1.1])
+plt.errorbar(Zs, Nets, Nets_err, linestyle='none', marker='v', color='blueviolet', ecolor='mediumorchid', markersize=8)
 plt.ylabel(r"Relative Yield")
 plt.xlabel(r"Target Atomic Number Z")
 plt.savefig('Report/Z_Comparison.png', bbox_inches='tight', dpi=dpi)
@@ -352,10 +373,11 @@ actualx, Actual = func.binmean(actualx, binwidth), func.binsum(Actual, binwidth)
 Actual = Actual[:binned_end]
 
 plt.figure(53).add_axes((0,0,1.0,0.8))
-plt.step(actualx, no_negative(Actual), where='mid', linewidth=1.2)
+plt.step(actualx, no_negative(Actual), where='mid', linewidth=1.2, color='darkorchid')
 plt.ylim([0, max(Actual)*1.05])
 plt.xlim([500, 1100])
-plt.axvline(actualx.min(), 0, 11000, linewidth=1.2)
+plt.axvline(actualx.min(), 0, Actual[0]/(max(Actual*1.05)), linewidth=1.2, color='darkorchid')
+plt.axvline(actualx[-1], 0, Actual[-1]/(max(Actual*1.05)), linewidth=1.2, color='darkorchid')
 plt.ylabel(r"Counts")
 plt.xlabel(r"Energy (keV)")
 plt.savefig('Report/Actual_spectrum', bbox_inches='tight', dpi=dpi)
